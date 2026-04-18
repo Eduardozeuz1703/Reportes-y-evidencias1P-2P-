@@ -1,0 +1,26 @@
+        LIST    P=16F84A
+        INCLUDE <P16F84A.INC>
+
+        __CONFIG _XT_OSC & _WDT_OFF & _PWRTE_ON & _CP_OFF
+
+        ORG     0x0000
+        GOTO    INICIO
+
+INICIO
+        BSF     STATUS, RP0
+        MOVLW   0x01
+        MOVWF   TRISA            ; RA0 entrada
+        CLRF    TRISB            ; PORTB salida
+        BCF     STATUS, RP0
+
+        BSF     PORTB, 0         ; LED inicia encendido
+
+LOOP
+        BTFSS   PORTA, 0         ; ¿Botón presionado?
+        GOTO    LOOP
+
+        BCF     PORTB, 0         ; Apaga LED
+
+        GOTO    LOOP
+
+        END

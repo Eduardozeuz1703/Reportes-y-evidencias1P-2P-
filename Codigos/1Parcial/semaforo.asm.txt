@@ -1,0 +1,82 @@
+        LIST    P=16F84A
+        INCLUDE <P16F84A.INC>
+
+        __CONFIG _XT_OSC & _WDT_OFF & _PWRTE_ON & _CP_OFF
+
+        CBLOCK  0x0C
+            CONT1
+            CONT2
+            CONT3
+        ENDC
+
+        ORG     0x0000
+        GOTO    INICIO
+
+INICIO
+        BSF     STATUS, RP0      ; Banco 1
+        CLRF    TRISB            ; Todo PORTB como salida
+        BCF     STATUS, RP0      ; Banco 0
+
+        CLRF    PORTB
+
+MAIN
+        ; Semaforo 1 = VERDE, Semaforo 2 = ROJO
+        MOVLW   B'00100001'
+        MOVWF   PORTB
+        CALL    RETARDO_LARGO
+
+        ; Semaforo 1 = AMARILLO, Semaforo 2 = ROJO
+        MOVLW   B'00100010'
+        MOVWF   PORTB
+        CALL    RETARDO_CORTO
+
+        ; Semaforo 1 = ROJO, Semaforo 2 = VERDE
+        MOVLW   B'00001100'
+        MOVWF   PORTB
+        CALL    RETARDO_LARGO
+
+        ; Semaforo 1 = ROJO, Semaforo 2 = AMARILLO
+        MOVLW   B'00010100'
+        MOVWF   PORTB
+        CALL    RETARDO_CORTO
+
+        GOTO    MAIN
+
+;-----------------------------------
+; RETARDO LARGO
+;-----------------------------------
+RETARDO_LARGO
+        MOVLW   D'255'
+        MOVWF   CONT1
+L1
+        MOVLW   D'255'
+        MOVWF   CONT2
+L2
+        MOVLW   D'20'
+        MOVWF   CONT3
+L3
+        DECFSZ  CONT3, F
+        GOTO    L3
+        DECFSZ  CONT2, F
+        GOTO    L2
+        DECFSZ  CONT1, F
+        GOTO    L1
+        RETURN
+
+;-----------------------------------
+; RETARDO CORTO
+;-----------------------------------
+RETARDO_CORTO
+        MOVLW   D'150'
+        MOVWF   CONT1
+S1
+        MOVLW   D'200'
+        MOVWF   CONT2
+S2
+        DECFSZ  CONT2, F
+        GOTO    S2
+        DECFSZ  CONT1, F
+        GOTO    S1
+        RETURN
+
+        END

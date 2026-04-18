@@ -1,0 +1,90 @@
+        LIST    P=16F84A
+        INCLUDE <P16F84A.INC>
+
+        __CONFIG _XT_OSC & _WDT_OFF & _PWRTE_ON & _CP_OFF
+
+CONT1       EQU     0x0C
+CONT2       EQU     0x0D
+CONTADOR    EQU     0x0E
+
+        ORG     0x0000
+        GOTO    INICIO
+
+INICIO
+        BSF     STATUS, RP0          ; Banco 1
+        BSF     TRISA, 0             ; RA0 entrada (botón)
+        BCF     TRISA, 1             ; RA1 salida (LED indicador)
+        CLRF    TRISB                ; PORTB salida
+        BCF     STATUS, RP0          ; Banco 0
+
+        CLRF    CONTADOR
+        CLRF    PORTB
+        BCF     PORTA,1              ; LED indicador apagado
+
+;========================================
+; ESPERAR PULSACION
+;========================================
+ESPERA_PRESION
+        BTFSS   PORTA,0              ; ¿botón presionado?
+        GOTO    ESPERA_PRESION
+
+        CALL    RETARDO              ; anti-rebote
+
+        BTFSS   PORTA,0              ; confirmar que sigue presionado
+        GOTO    ESPERA_PRESION
+
+        INCF    CONTADOR,F           ; contador = contador + 1
+        MOVF    CONTADOR,W
+        MOVWF   PORTB                ; mostrar valor en LEDs
+
+;----------------------------------------
+; si contador == 120, encender RA1
+;----------------------------------------
+        MOVF    CONTADOR,W
+        XORLW   D'120'
+        BTFSC   STATUS,Z
+        BSF     PORTA,1
+
+;----------------------------------------
+; si contador == 200, apagar RA1 y reiniciar
+;----------------------------------------
+        MOVF    CONTADOR,W
+        XORLW   D'200'
+        BTFSC   STATUS,Z
+        GOTO    REINICIAR
+
+;========================================
+; ESPERAR A SOLTAR EL BOTON
+;========================================
+ESPERA_SOLTAR
+        BTFSC   PORTA,0              ; mientras siga presionado
+        GOTO    ESPERA_SOLTAR
+
+        CALL    RETARDO              ; anti-rebote al soltar
+        GOTO    ESPERA_PRESION
+
+;========================================
+REINICIAR
+        BCF     PORTA,1              ; apagar LED indicador
+        CLRF    CONTADOR
+        CLRF    PORTB
+
+        GOTO    ESPERA_SOLTAR
+
+;========================================
+; RETARDO
+;========================================
+RETARDO
+        MOVLW   D'255'
+        MOVWF   CONT1
+R1
+        MOVLW   D'255'
+        MOVWF   CONT2
+R2
+        DECFSZ  CONT2,F
+        GOTO    R2
+        DECFSZ  CONT1,F
+        GOTO    R1
+        RETURN
+
+        END

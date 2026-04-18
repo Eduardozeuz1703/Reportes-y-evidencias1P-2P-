@@ -1,0 +1,50 @@
+        LIST    P=16F84A
+        INCLUDE <P16F84A.INC>
+
+        __CONFIG _XT_OSC & _WDT_OFF & _PWRTE_ON & _CP_OFF
+
+; Variables para retardo
+        CBLOCK  0x0C
+            CONT1
+            CONT2
+        ENDC
+
+        ORG     0x0000
+        GOTO    INICIO
+
+INICIO
+        BSF     STATUS, RP0      ; Banco 1
+        CLRF    TRISB            ; Todo PORTB como salida
+        BCF     STATUS, RP0      ; Banco 0
+
+        CLRF    PORTB
+
+MAIN
+        MOVLW   B'00000101'      ; Enciende RB0 y RB2
+        MOVWF   PORTB
+        CALL    RETARDO
+
+        MOVLW   B'00001010'      ; Enciende RB1 y RB3
+        MOVWF   PORTB
+        CALL    RETARDO
+
+        GOTO    MAIN
+
+RETARDO
+        MOVLW   D'255'
+        MOVWF   CONT1
+
+R1
+        MOVLW   D'255'
+        MOVWF   CONT2
+
+R2
+        DECFSZ  CONT2, F
+        GOTO    R2
+
+        DECFSZ  CONT1, F
+        GOTO    R1
+
+        RETURN
+
+        END

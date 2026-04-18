@@ -1,0 +1,51 @@
+        LIST    P=16F84A
+        INCLUDE <P16F84A.INC>
+
+        __CONFIG _XT_OSC & _WDT_OFF & _PWRTE_ON & _CP_OFF
+
+; Variables
+        CBLOCK  0x0C
+            CONT1
+            CONT2
+        ENDC
+
+        ORG     0x0000
+        GOTO    INICIO
+
+INICIO
+        BSF     STATUS, RP0      ; Banco 1
+        CLRF    TRISB            ; PORTB salida
+        BCF     STATUS, RP0      ; Banco 0
+
+        CLRF    PORTB            ; LED apagado
+
+MAIN
+        BSF     PORTB, 0         ; LED ON
+        CALL    RETARDO
+
+        BCF     PORTB, 0         ; LED OFF
+        CALL    RETARDO
+
+        GOTO    MAIN
+
+;-------------------------
+; RETARDO
+;-------------------------
+RETARDO
+        MOVLW   D'255'
+        MOVWF   CONT1
+
+R1
+        MOVLW   D'255'
+        MOVWF   CONT2
+
+R2
+        DECFSZ  CONT2, F
+        GOTO    R2
+
+        DECFSZ  CONT1, F
+        GOTO    R1
+
+        RETURN
+
+        END

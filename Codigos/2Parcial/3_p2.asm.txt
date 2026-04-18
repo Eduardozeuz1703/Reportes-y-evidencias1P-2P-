@@ -1,0 +1,61 @@
+        LIST    P=16F84A
+        INCLUDE <P16F84A.INC>
+
+        __CONFIG _XT_OSC & _WDT_OFF & _PWRTE_ON & _CP_OFF
+
+        ORG     0x0000
+        GOTO    INICIO
+
+INICIO
+        BSF     STATUS, RP0      ; Banco 1
+        MOVLW   B'00000011'      ; RA0 y RA1 entradas
+        MOVWF   TRISA
+        CLRF    TRISB            ; PORTB salida
+        BCF     STATUS, RP0      ; Banco 0
+
+LOOP
+        ; Leer RA1 RA0
+        MOVF    PORTA, W
+        ANDLW   B'00000011'      ; solo RA0 y RA1
+
+        ; Comparaciones
+        XORLW   B'00000000'
+        BTFSC   STATUS, Z
+        GOTO    CASO00
+
+        MOVF    PORTA, W
+        ANDLW   B'00000011'
+        XORLW   B'00000001'
+        BTFSC   STATUS, Z
+        GOTO    CASO01
+
+        MOVF    PORTA, W
+        ANDLW   B'00000011'
+        XORLW   B'00000010'
+        BTFSC   STATUS, Z
+        GOTO    CASO10
+
+        GOTO    CASO11
+
+;========================
+CASO00
+        MOVLW   B'10101010'
+        MOVWF   PORTB
+        GOTO    LOOP
+
+CASO01
+        MOVLW   B'01010101'
+        MOVWF   PORTB
+        GOTO    LOOP
+
+CASO10
+        MOVLW   B'00001111'
+        MOVWF   PORTB
+        GOTO    LOOP
+
+CASO11
+        MOVLW   B'11110000'
+        MOVWF   PORTB
+        GOTO    LOOP
+
+        END
